@@ -1,5 +1,0 @@
-outs:
-- md5: 83928343bba6c5ff878885348d3f89c0
-  size: 265498212
-  hash: md5
-  path: text_model.pth
