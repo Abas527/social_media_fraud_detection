@@ -215,3 +215,4 @@ data/raw
 data/processed
 
 models/*.pth
+/models
