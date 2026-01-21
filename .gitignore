@@ -211,4 +211,7 @@ __marimo__/
 Dockerfile
 template.py
 notebooks/
-data/
+data/raw
+data/processed
+
+models/*.pth
