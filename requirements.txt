@@ -1,0 +1,14 @@
+## requirements.txt
+streamlit
+torch
+torchvision
+scikit-learn
+pillow
+numpy
+dvc
+dvc[http]  
+mlflow
+fastapi[standard]
+dagshub
+fastapi
+uvicorn
