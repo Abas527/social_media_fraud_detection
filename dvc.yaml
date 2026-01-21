@@ -23,7 +23,7 @@ stages:
       - src/data_loader.py
       - data/processed
     outs:
-      - models/text_model.pth
+      - models
 
   train_image_model:
     cmd: python src/train.py --model image
@@ -32,16 +32,16 @@ stages:
       - src/data_loader.py
       - data/raw
     outs:
-      - models/image_model.pth
+      - models
 
   train_fusion_model:
     cmd: python src/fusion_model.py --model fusion
     deps:
       - src/fusion_model.py
-      - models/text_model.pth
-      - models/image_model.pth
+      - models
+      - models
       - data/raw
       - data/processed
       - src/data_loader.py
     outs:
-      - models/fusion_model.pth
+      - models
