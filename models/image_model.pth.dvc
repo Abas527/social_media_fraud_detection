@@ -1,0 +1,5 @@
+outs:
+- md5: 5085e69241f2cbba744d9724ab09a61d
+  size: 98555142
+  hash: md5
+  path: image_model.pth
