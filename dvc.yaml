@@ -1,1 +1,47 @@
 ## dvc.yaml
+stages:
+  prepare_text_data:
+    cmd: python src/preprocessing.py --type text
+    deps:
+      - src/preprocessing.py
+      - data/raw
+    outs:
+      - data/processed/text
+
+  prepare_data:
+    cmd: python src/data_loader.py
+    deps:
+      - src/data_loader.py
+      - data/raw
+    outs:
+      - data/processed/fusion
+
+  train_text_model:
+    cmd: python src/train.py --model text
+    deps:
+      - src/train.py
+      - src/data_loader.py
+      - data/processed
+    outs:
+      - models/text_model.pth
+
+  train_image_model:
+    cmd: python src/train.py --model image
+    deps:
+      - src/train.py
+      - src/data_loader.py
+      - data/raw
+    outs:
+      - models/image_model.pth
+
+  train_fusion_model:
+    cmd: python src/fusion_model.py --model fusion
+    deps:
+      - src/fusion_model.py
+      - models/text_model.pth
+      - models/image_model.pth
+      - data/raw
+      - data/processed
+      - src/data_loader.py
+    outs:
+      - models/fusion_model.pth
