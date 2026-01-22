@@ -9,6 +9,15 @@ from torch.optim import AdamW
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score,recall_score, precision_score
 from torchvision import models
 import tqdm
+import mlflow
+from mlflow_utils import setup_experiment
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+setup_experiment("Text_and_Image_Classification_evaluation")
+
 
 criterion=nn.CrossEntropyLoss()
 model=TextModel()
@@ -46,12 +55,16 @@ def evaluate_model(model,criterion,val_loader,device):
             pred_list.extend(predicted.cpu().numpy())
         
         classification_rep=classification_report(label_list,pred_list)
+        
+        
+        precision = precision_score(label_list, pred_list, average='weighted', zero_division=0)
+        recall = recall_score(label_list, pred_list, average='weighted', zero_division=0)
            
 
     avg_val_loss=val_loss/len(val_loader)
     accuracy=correct/total
 
-    return avg_val_loss,accuracy,classification_rep
+    return avg_val_loss,accuracy,classification_rep,precision,recall
 
 
 #image model parameters
@@ -93,21 +106,50 @@ def evaluate_image_model(model,criterion,val_loader,device):
             label_list.extend(labels.cpu().numpy())
             pred_list.extend(predicted.cpu().numpy())
         classification_rep=classification_report(label_list,pred_list)
+        
+        
+        precision = precision_score(label_list, pred_list, average='weighted', zero_division=0)
+        recall = recall_score(label_list, pred_list, average='weighted', zero_division=0)
     avg_val_loss=val_loss/len(val_loader)
     accuracy=correct/total
-    return avg_val_loss,accuracy,classification_rep
+    return avg_val_loss,accuracy,classification_rep,precision,recall
 
 def main():
-    
-    val_loss,accuracy,classification_rep=evaluate_model(model,criterion,val_loader,device)
-    print(f"Validation Loss: {val_loss}, Accuracy: {accuracy}")
-    print("Classification Report:")
-    print(classification_rep)
+    # Evaluate Text Model
+    with mlflow.start_run(run_name="text_model_evaluation"):
+        logger.info("Starting text model evaluation...")
+        val_loss,accuracy,classification_rep,precision,recall=evaluate_model(model,criterion,val_loader,device)
+        print(f"Validation Loss: {val_loss}, Accuracy: {accuracy}")
+        print("Classification Report:")
+        print(classification_rep)
+        
+        # Log metrics
+        mlflow.log_metric("val_loss", val_loss)
+        mlflow.log_metric("accuracy", accuracy)
+        mlflow.log_metric("precision", precision)
+        mlflow.log_metric("recall", recall)
+        
+        # Log classification report as artifact
+        mlflow.log_text(classification_rep, "text_classification_report.txt")
+        logger.info("Text model evaluation completed and logged")
 
-    img_val_loss,img_accuracy,img_classification_rep=evaluate_image_model(image_model,criterion,image_val_loader,device)
-    print(f"Image Validation Loss: {img_val_loss}, Image Accuracy: {img_accuracy}")
-    print("Image Classification Report:")
-    print(img_classification_rep)
+    # Evaluate Image Model
+    with mlflow.start_run(run_name="image_model_evaluation"):
+        logger.info("Starting image model evaluation...")
+        img_val_loss,img_accuracy,img_classification_rep,img_precision,img_recall=evaluate_image_model(image_model,criterion,image_val_loader,device)
+        print(f"Image Validation Loss: {img_val_loss}, Image Accuracy: {img_accuracy}")
+        print("Image Classification Report:")
+        print(img_classification_rep)
+        
+        # Log metrics
+        mlflow.log_metric("val_loss", img_val_loss)
+        mlflow.log_metric("accuracy", img_accuracy)
+        mlflow.log_metric("precision", img_precision)
+        mlflow.log_metric("recall", img_recall)
+        
+        # Log classification report as artifact
+        mlflow.log_text(img_classification_rep, "image_classification_report.txt")
+        logger.info("Image model evaluation completed and logged")
 
 if __name__=="__main__":
     main()
