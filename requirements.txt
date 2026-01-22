@@ -1,14 +1,13 @@
-## requirements.txt
+fastapi
+uvicorn
 streamlit
 torch
 torchvision
-scikit-learn
+transformers
 pillow
 numpy
-dvc
-dvc[http]  
+pandas
+scikit-learn
+python-multipart
+gdown
 mlflow
-fastapi[standard]
-dagshub
-fastapi
-uvicorn

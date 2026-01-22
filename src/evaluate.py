@@ -1,8 +1,8 @@
 ## src/evaluate.py
 
 import torch
-from model import TextModel
-from data_loader import create_dataloaders
+from src.model import TextModel
+from src.data_loader import create_dataloaders
 import torch.nn as nn
 import pandas as pd
 from torch.optim import AdamW
@@ -10,7 +10,7 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_auc_sco
 from torchvision import models
 import tqdm
 import mlflow
-from mlflow_utils import setup_experiment
+from src.mlflow_utils import setup_experiment
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +24,7 @@ model=TextModel()
 optimizer=AdamW(model.parameters(),lr=2e-5)
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
-model.load_state_dict(torch.load("models/text_model.pth", weights_only=True))
+model.load_state_dict(torch.load("models/text_model.pth", map_location=device, weights_only=True))
 df=pd.read_csv("data/processed/text/text_data.csv")
 train_loader,val_loader,test_loader=create_dataloaders(df)
 
@@ -76,7 +76,7 @@ data_dir=Path("data/raw/image")
 image_train_loader,image_val_loader=create_image_loader(data_dir)
 image_model=ImageModel()
 image_model.to(device)
-image_model.load_state_dict(torch.load("models/image_model.pth", weights_only=True))
+image_model.load_state_dict(torch.load("models/image_model.pth", map_location=device, weights_only=True))
 optimizer=AdamW(image_model.parameters(),lr=2e-5)
 
 

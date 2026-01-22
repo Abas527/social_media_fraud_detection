@@ -12,7 +12,7 @@ from src.model import TextModel, ImageModel
 from transformers import AutoTokenizer
 
 import mlflow
-from mlflow_utils import setup_experiment
+from src.mlflow_utils import setup_experiment
 import logging
 
 logging.basicConfig(level=logging.INFO)

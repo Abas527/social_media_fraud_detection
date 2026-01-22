@@ -4,12 +4,12 @@
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from preprocessing import split_data
+from src.preprocessing import split_data
 import numpy as np
 import torch
 from transformers import DistilBertTokenizerFast, DistilBertModel
 from torch.utils.data import DataLoader, Dataset
-from data_loader import create_dataloaders
+from src.data_loader import create_dataloaders
 from pathlib import Path
 
 class TextModel(torch.nn.Module):

@@ -1,7 +1,7 @@
 ## src/train.py
 import torch
 from model import TextModel
-from data_loader import create_dataloaders
+from src.data_loader import create_dataloaders
 import torch.nn as nn
 import pandas as pd
 from torch.optim import AdamW
@@ -71,8 +71,8 @@ def train_model(model,optimizer,criterion,train_loader,device,epochs=3):
 
 
 # def tran_model for images
-from model import ImageModel
-from data_loader import create_image_loader
+from src.model import ImageModel
+from src.data_loader import create_image_loader
 from pathlib import Path
 
 data_dir=Path("data/raw/image")

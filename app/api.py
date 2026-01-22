@@ -26,9 +26,9 @@ def load_model():
     image_model=ImageModel().to(device)
     fusion_model=FusionModel().to(device)
 
-    text_model.load_state_dict(torch.load("models/text_model.pth",weights_only=True))
-    image_model.load_state_dict(torch.load("models/image_model.pth",weights_only=True))
-    fusion_model.load_state_dict(torch.load("models/fusion_model.pth",weights_only=True))
+    text_model.load_state_dict(torch.load("models/text_model.pth",map_location=device,weights_only=True))
+    image_model.load_state_dict(torch.load("models/image_model.pth",map_location=device,weights_only=True))
+    fusion_model.load_state_dict(torch.load("models/fusion_model.pth",map_location=device,weights_only=True))
 
     text_model.eval()
     image_model.eval()
