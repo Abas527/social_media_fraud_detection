@@ -3,6 +3,9 @@ import requests
 import json
 from PIL import Image
 import io
+from src.artifacts import download_model_artifacts
+
+download_model_artifacts()
 
 # Configure page
 st.set_page_config(

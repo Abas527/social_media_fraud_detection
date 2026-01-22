@@ -9,6 +9,9 @@ from src.predict import prediction_text,prediction_image,prediction_text_image
 from pathlib import Path
 import os
 import tempfile
+from src.artifacts import download_model_artifacts
+
+
 
 class response_model(BaseModel):
     probs: List[List[float]]
@@ -59,6 +62,11 @@ def prediction_system(text_model,image_model,fusion_model,device,text_input:Opti
 app=FastAPI()
 
 text_model,image_model,fusion_model=load_model()
+
+
+@app.on_event("startup")
+async def startup_event():
+    download_model_artifacts()
 
 @app.post("/predict/text", response_model=response_model)
 async def predict(
