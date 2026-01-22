@@ -216,6 +216,4 @@ data/processed
 
 
 
-models/*
-
-!models/*.dvc
+models/

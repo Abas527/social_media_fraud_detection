@@ -1,12 +1,12 @@
 ## src/data_loader.py
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from src.preprocessing import split_data
+from preprocessing import split_data
 import numpy as np
 import torch
 from transformers import DistilBertTokenizerFast
 from torch.utils.data import DataLoader, Dataset
-from src.preprocessing import transformer
+from preprocessing import transformer
 from PIL import Image
 import os
 from pathlib import Path

@@ -1,9 +1,0 @@
-[core]
-    remote = dagshub
-['remote "origin"']
-    url = https://dagshub.com/Abas527/social_media_fraud_detection.dvc
-['remote "dagshub"']
-    url = https://dagshub.com/Abas527/social_media_fraud_detection.dvc
-    auth = basic
-    user = Abas527
-    password = 09c3091287325f7bf6c1fad6a33832f44ccba43d
