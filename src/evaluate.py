@@ -39,12 +39,12 @@ def evaluate_model(model,criterion,val_loader,device):
     with torch.no_grad():
         label_list=[]
         pred_list=[]
-        for batch in val_loader:
+        for batch, labels in val_loader:
             input_ids=batch["input_ids"].to(device)
             attention_mask=batch["attention_mask"].to(device)
-            labels=batch["labels"].to(device)
+            labels=labels.to(device)
 
-            outputs=model(input_ids=input_ids,attention_mask=attention_mask)
+            outputs,_=model(input_ids=input_ids,attention_mask=attention_mask)
             loss=criterion(outputs,labels)
 
             val_loss+=loss.item()
