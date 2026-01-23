@@ -223,7 +223,7 @@ The architecture supports easy migration to:
 * Batch processing pipelines
 * Content moderation systems
 
-* currently we are on huggingface space
+currently we are on huggingface space
 https://huggingface.co/spaces/cyberanil/fraud_detection
 
 You can visit and enjoy the app
