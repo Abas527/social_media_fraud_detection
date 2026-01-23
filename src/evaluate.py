@@ -14,10 +14,11 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_auc_sco
 from torchvision import models
 import tqdm
 import logging
+from src.mlflow_utils import setup_mlflow, log_params, log_metrics
+import mlflow
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 criterion=nn.CrossEntropyLoss()
 model=TextModel()
@@ -28,8 +29,10 @@ model.load_state_dict(torch.load("models/text_model.pth", map_location=device, w
 df=pd.read_csv("data/processed/text/text_data.csv")
 train_loader,val_loader,test_loader=create_dataloaders(df)
 
+setup_mlflow(experiment_name="Text Model Evaluation")
 
 def evaluate_model(model,criterion,val_loader,device):
+
     model.eval()
 
     val_loss=0
@@ -55,11 +58,19 @@ def evaluate_model(model,criterion,val_loader,device):
             pred_list.extend(predicted.cpu().numpy())
         
         classification_rep=classification_report(label_list,pred_list)
-        
+        classification_rep_dict=classification_report(label_list,pred_list,output_dict=True)
         
         precision = precision_score(label_list, pred_list, average='weighted', zero_division=0)
         recall = recall_score(label_list, pred_list, average='weighted', zero_division=0)
-           
+        
+        # Log metrics to MLflow
+        avg_val_loss = val_loss/len(val_loader)
+        accuracy = correct/total
+        mlflow.log_metric("text_val_loss", avg_val_loss)
+        mlflow.log_metric("text_val_accuracy", accuracy)
+        mlflow.log_metric("text_val_precision", precision)
+        mlflow.log_metric("text_val_recall", recall)
+        mlflow.log_metric("text_val_f1", classification_rep_dict['weighted avg']['f1-score'])
 
     avg_val_loss=val_loss/len(val_loader)
     accuracy=correct/total
@@ -105,31 +116,45 @@ def evaluate_image_model(model,criterion,val_loader,device):
             total+=labels.size(0)
             label_list.extend(labels.cpu().numpy())
             pred_list.extend(predicted.cpu().numpy())
-        classification_rep=classification_report(label_list,pred_list)
         
+        classification_rep=classification_report(label_list,pred_list)
+        classification_rep_dict=classification_report(label_list,pred_list,output_dict=True)
         
         precision = precision_score(label_list, pred_list, average='weighted', zero_division=0)
         recall = recall_score(label_list, pred_list, average='weighted', zero_division=0)
+        
+        # Log metrics to MLflow
+        avg_val_loss = val_loss/len(val_loader)
+        accuracy = correct/total
+        mlflow.log_metric("image_val_loss", avg_val_loss)
+        mlflow.log_metric("image_val_accuracy", accuracy)
+        mlflow.log_metric("image_val_precision", precision)
+        mlflow.log_metric("image_val_recall", recall)
+        mlflow.log_metric("image_val_f1", classification_rep_dict['weighted avg']['f1-score'])
+    
     avg_val_loss=val_loss/len(val_loader)
     accuracy=correct/total
     return avg_val_loss,accuracy,classification_rep,precision,recall
 
 def main():
-    # Evaluate Text Model
-    logger.info("Starting text model evaluation...")
-    val_loss,accuracy,classification_rep,precision,recall=evaluate_model(model,criterion,val_loader,device)
-    print(f"Validation Loss: {val_loss}, Accuracy: {accuracy}")
-    print("Classification Report:")
-    print(classification_rep)
-    logger.info("Text model evaluation completed")
+    setup_mlflow(experiment_name="Text Model Evaluation")
+    
+    with mlflow.start_run():
+        # Evaluate Text Model
+        logger.info("Starting text model evaluation...")
+        val_loss,accuracy,classification_rep,precision,recall=evaluate_model(model,criterion,val_loader,device)
+        print(f"Validation Loss: {val_loss}, Accuracy: {accuracy}")
+        print("Classification Report:")
+        print(classification_rep)
+        logger.info("Text model evaluation completed")
 
-    # Evaluate Image Model
-    logger.info("Starting image model evaluation...")
-    img_val_loss,img_accuracy,img_classification_rep,img_precision,img_recall=evaluate_image_model(image_model,criterion,image_val_loader,device)
-    print(f"Image Validation Loss: {img_val_loss}, Image Accuracy: {img_accuracy}")
-    print("Image Classification Report:")
-    print(img_classification_rep)
-    logger.info("Image model evaluation completed")
+        # Evaluate Image Model
+        logger.info("Starting image model evaluation...")
+        img_val_loss,img_accuracy,img_classification_rep,img_precision,img_recall=evaluate_image_model(image_model,criterion,image_val_loader,device)
+        print(f"Image Validation Loss: {img_val_loss}, Image Accuracy: {img_accuracy}")
+        print("Image Classification Report:")
+        print(img_classification_rep)
+        logger.info("Image model evaluation completed")
 
 if __name__=="__main__":
     main()
