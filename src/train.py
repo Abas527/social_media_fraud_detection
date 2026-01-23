@@ -39,7 +39,7 @@ def train_model(model,optimizer,criterion,train_loader,device,epochs=3):
     for epoch in range(epochs):
             model.train()
             train_los=0
-            for batch in train_loader:
+            for batch,_ in train_loader:
                 optimizer.zero_grad()
 
                 input_ids=batch["input_ids"].to(device)
