@@ -12,8 +12,6 @@ import pandas as pd
 from torch.optim import AdamW
 from tqdm import tqdm
 import logging
-import mlflow
-from src.mlflow_utils import setup_experiment, log_metrics, log_params
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -54,11 +52,9 @@ def train_model(model,optimizer,criterion,train_loader,device,epochs=3):
                 train_los+=loss.item()
             
             avg_train_loss=train_los/len(train_loader)
-            mlflow.log_metric("text_train_loss", avg_train_loss, step=epoch)
             print(f"Epoch {epoch+1}/{epochs}, Training Loss: {avg_train_loss}")
     
     torch.save(model.state_dict(),"models/text_model.pth")
-    mlflow.log_artifact("models/text_model.pth")
     
     
 
@@ -103,31 +99,19 @@ def train_image_model(model,optimizer,criterion,train_loader,device,epochs=5):
             
             avg_train_loss=train_loss/len(train_loader)
             accuracy = 100*correct/total
-            mlflow.log_metric("image_train_loss", avg_train_loss, step=epoch)
-            mlflow.log_metric("image_train_accuracy", accuracy, step=epoch)
             
             print(f"Epoch {epoch+1}/{epochs}, Training Loss: {avg_train_loss}, Training Accuracy: {accuracy}%")
     
     logger.info("Image model training completed")
     torch.save(model.state_dict(),"models/image_model.pth")
-    mlflow.log_artifact("models/image_model.pth")
     
     
 
 
 def main():
-    setup_experiment("Social Media Fraud Detection - Text and Image Models")
-    
-    with mlflow.start_run():
-        log_params({
-            "text_epochs": 3,
-            "image_epochs": 5,
-            "learning_rate": 2e-5,
-            "device": str(device)
-        })
-        
-        train_model(model,optimizer,criterion,train_loader,device,epochs=3)
-        train_image_model(image_model,optimizer,criterion,image_train_loader,device,epochs=5)
+    train_model(model,optimizer,criterion,train_loader,device,epochs=3)
+
+    train_image_model(image_model,optimizer,criterion,image_train_loader,device,epochs=5)
 
 if __name__=="__main__":
     main()

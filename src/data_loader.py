@@ -40,7 +40,7 @@ class TextDataset(Dataset):
     def __getitem__(self,index):
         item={key:val[index] for key,val in self.embeddings.items()}
         item['labels']=self.labels[index]
-        return item
+        return item,self.labels[index]
     def __len__(self):
         return len(self.labels)
 

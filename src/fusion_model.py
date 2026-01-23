@@ -15,8 +15,6 @@ from PIL import Image
 
 from src.model import TextModel, ImageModel
 from transformers import AutoTokenizer
-import mlflow
-from src.mlflow_utils import setup_experiment, log_metrics, log_params
 
 import logging
 
@@ -122,12 +120,10 @@ def train_fusion_model(model, optimizer, criterion, train_loader, device, epochs
                 total_loss += loss.item()
 
             avg_loss = total_loss / len(train_loader)
-            mlflow.log_metric("fusion_train_loss", avg_loss, step=epoch)
             print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
 
     logger.info("Fusion model training completed")
     torch.save(model.state_dict(), "models/fusion_model.pth")
-    mlflow.log_artifact("models/fusion_model.pth")
 
 def evaluate_fusion_model(model, criterion, val_loader, device):
     logger.info("Starting fusion model evaluation...")
@@ -153,18 +149,6 @@ def evaluate_fusion_model(model, criterion, val_loader, device):
     classification_rep = classification_report(all_labels, all_preds, output_dict=True)
     confusion_mat = confusion_matrix(all_labels, all_preds)
     
-    # Log metrics
-    mlflow.log_metric("fusion_val_accuracy", classification_rep['accuracy'])
-    mlflow.log_metric("fusion_val_precision", classification_rep['weighted avg']['precision'])
-    mlflow.log_metric("fusion_val_recall", classification_rep['weighted avg']['recall'])
-    mlflow.log_metric("fusion_val_f1", classification_rep['weighted avg']['f1-score'])
-    
-    # Log classification report as artifact
-    import json
-    with open("fusion_classification_report.json", "w") as f:
-        json.dump(classification_rep, f, indent=2)
-    mlflow.log_artifact("fusion_classification_report.json")
-    
     print("Classification Report:")
     print(classification_report(all_labels, all_preds))
     print("Confusion Matrix:")
@@ -183,41 +167,29 @@ def main():
         stratify=text_image_df['label']
     )
 
-    setup_experiment("Social Media Fraud Detection - Fusion Model")
 
-    with mlflow.start_run():
-        log_params({
-            "fusion_epochs": 5,
-            "learning_rate": 2e-5,
-            "batch_size": 16,
-            "device": str(device),
-            "text_dim": 768,
-            "image_dim": 2048,
-            "num_classes": 2
-        })
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    image_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor()
+    ])
 
-        tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-        image_transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor()
-        ])
+    # DataLoaders
+    train_loader = create_fusion_dataloader(train_df, tokenizer, image_transform, batch_size=16, shuffle=True)
+    val_loader = create_fusion_dataloader(val_df, tokenizer, image_transform, batch_size=16, shuffle=False)
 
-        # DataLoaders
-        train_loader = create_fusion_dataloader(train_df, tokenizer, image_transform, batch_size=16, shuffle=True)
-        val_loader = create_fusion_dataloader(val_df, tokenizer, image_transform, batch_size=16, shuffle=False)
+    print("Train batches:", len(train_loader), "Val batches:", len(val_loader))
 
-        print("Train batches:", len(train_loader), "Val batches:", len(val_loader))
+    # Fusion model
+    fusion_model = FusionModel().to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.AdamW(fusion_model.parameters(), lr=2e-5)
 
-        # Fusion model
-        fusion_model = FusionModel().to(device)
-        criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.AdamW(fusion_model.parameters(), lr=2e-5)
-
-        # Train & Evaluate
-        logger.info("Starting fusion model training and evaluation pipeline...")
-        train_fusion_model(fusion_model, optimizer, criterion, train_loader, device, epochs=5)
-        evaluate_fusion_model(fusion_model, criterion, val_loader, device)
-        logger.info("Fusion model pipeline completed")
+    # Train & Evaluate
+    logger.info("Starting fusion model training and evaluation pipeline...")
+    train_fusion_model(fusion_model, optimizer, criterion, train_loader, device, epochs=5)
+    evaluate_fusion_model(fusion_model, criterion, val_loader, device)
+    logger.info("Fusion model pipeline completed")
 
 if __name__ == "__main__":
     main()
