@@ -1,6 +1,8 @@
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import subprocess
+import time
 
 import streamlit as st
 import requests
@@ -11,10 +13,16 @@ from src.artifacts import download_model_artifacts
 
 download_model_artifacts()
 
+
+
+if "api_started" not in st.session_state:
+    subprocess.Popen([sys.executable,"-m","uvicorn","app.api:app","--host","0.0.0.0","--port", "8000"])
+    time.sleep(5)  # wait for the server to start
+    st.session_state.api_started = True
+
 # Configure page
 st.set_page_config(
     page_title="Social Media Fraud Detection",
-    page_icon="🚨",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -36,11 +44,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # App title
-st.title("🚨 Social Media Fraud Detection System")
+st.title(" Social Media Fraud Detection System")
 st.markdown("---")
 
 # API base URL
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = "http://localhost:8000"
 
 # Helper function to format predictions
 def format_predictions(probs, preds, mode):
@@ -105,7 +113,6 @@ def display_results(response_data):
 # Create tabs
 tab1, tab2, tab3 = st.tabs([" Text Analysis", " Image Analysis", " Fusion Analysis"])
 
-# ==================== TAB 1: TEXT ANALYSIS ====================
 with tab1:
     st.header("Text-Only Fraud Detection")
     st.markdown("Analyze text content for potential fraud indicators.")
@@ -165,14 +172,13 @@ with tab1:
                     if response.status_code == 200:
                         display_results(response.json())
                     else:
-                        st.error(f"❌ API Error: {response.status_code}")
+                        st.error(f"API Error: {response.status_code}")
                         st.json(response.json())
                 except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
-                    st.info("Make sure the API server is running at http://127.0.0.1:8000")
+                    st.error(f"Error: {str(e)}")
+                    st.info("Make sure the API server is running at http://localhost:8000")
 
 
-# ==================== TAB 2: IMAGE ANALYSIS ====================
 with tab2:
     st.header("Image-Only Fraud Detection")
     st.markdown("Analyze images for potential fraud indicators.")
@@ -220,10 +226,9 @@ with tab2:
                         st.json(response.json())
                 except Exception as e:
                     st.error(f" Error: {str(e)}")
-                    st.info("Make sure the API server is running at http://127.0.0.1:8000")
+                    st.info("Make sure the API server is running at http://localhost:8000")
 
 
-# ==================== TAB 3: FUSION ANALYSIS ====================
 with tab3:
     st.header("Fusion Analysis (Text + Image)")
     st.markdown("Analyze both text and images together for more accurate fraud detection.")
@@ -281,14 +286,13 @@ with tab3:
                         st.json(response.json())
                 except Exception as e:
                     st.error(f" Error: {str(e)}")
-                    st.info("Make sure the API server is running at http://127.0.0.1:8000")
+                    st.info("Make sure the API server is running at http://localhost:8000")
 
-# ==================== FOOTER ====================
 st.markdown("---")
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.info(" API Status: Check if server is running at http://127.0.0.1:8000")
+    st.info(" API Status: Check if server is running at http://localhost:8000")
 with col2:
-    st.info(" API Docs: Visit http://127.0.0.1:8000/docs for Swagger UI")
+    st.info(" API Docs: Visit http://localhost:8000/docs for Swagger UI")
 with col3:
-    st.info(" OpenAPI Schema: Visit http://127.0.0.1:8000/openapi.json")
+    st.info(" OpenAPI Schema: Visit http://localhost:8000/openapi.json")
