@@ -16,14 +16,10 @@ from PIL import Image
 from src.model import TextModel, ImageModel
 from transformers import AutoTokenizer
 
-import mlflow
-from src.mlflow_utils import setup_experiment
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-setup_experiment("Fusion_Text_Image_Classification")
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -102,21 +98,9 @@ def create_fusion_dataloader(df, tokenizer, image_transform=None, batch_size=16,
 
 
 def train_fusion_model(model, optimizer, criterion, train_loader, device, epochs=5):
-    with mlflow.start_run(run_name="fusion_model_training"):
-        # Log hyperparameters
-        mlflow.log_param("model_type", "FusionModel")
-        mlflow.log_param("base_models", "TextModel + ImageModel")
-        mlflow.log_param("epochs", epochs)
-        mlflow.log_param("learning_rate", optimizer.defaults['lr'])
-        mlflow.log_param("batch_size", train_loader.batch_size)
-        mlflow.log_param("optimizer", "AdamW")
-        mlflow.log_param("loss_function", "CrossEntropyLoss")
-        mlflow.log_param("text_dim", 768)
-        mlflow.log_param("image_dim", 2048)
-        
-        logger.info("Starting fusion model training...")
-        
-        for epoch in range(epochs):
+    logger.info("Starting fusion model training...")
+    
+    for epoch in range(epochs):
             model.train()
             total_loss = 0
             for text_batch, images, labels in train_loader:
@@ -137,54 +121,40 @@ def train_fusion_model(model, optimizer, criterion, train_loader, device, epochs
 
             avg_loss = total_loss / len(train_loader)
             print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
-            
-            # Log metrics per epoch
-            mlflow.log_metric("train_loss", avg_loss, step=epoch)
 
-        logger.info("Fusion model training completed")
-
+    logger.info("Fusion model training completed")
     torch.save(model.state_dict(), "models/fusion_model.pth")
 
 def evaluate_fusion_model(model, criterion, val_loader, device):
-    with mlflow.start_run(run_name="fusion_model_evaluation"):
-        logger.info("Starting fusion model evaluation...")
-        
-        model.eval()
-        all_labels, all_preds = [], []
+    logger.info("Starting fusion model evaluation...")
+    
+    model.eval()
+    all_labels, all_preds = [], []
 
-        with torch.no_grad():
-            for text_batch, images, labels in val_loader:
-                labels = labels.to(device)
-                images = images.to(device)
-                text_batch = {k: v.to(device) for k, v in text_batch.items()}
+    with torch.no_grad():
+        for text_batch, images, labels in val_loader:
+            labels = labels.to(device)
+            images = images.to(device)
+            text_batch = {k: v.to(device) for k, v in text_batch.items()}
 
-                _, text_features = text_model(**text_batch)
-                _, image_features = image_model(images)
+            _, text_features = text_model(**text_batch)
+            _, image_features = image_model(images)
 
-                outputs = model(text_features, image_features)
-                _, preds = torch.max(outputs, 1)
+            outputs = model(text_features, image_features)
+            _, preds = torch.max(outputs, 1)
 
-                all_labels.extend(labels.cpu().numpy())
-                all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+            all_preds.extend(preds.cpu().numpy())
 
-        classification_rep = classification_report(all_labels, all_preds, output_dict=True)
-        confusion_mat = confusion_matrix(all_labels, all_preds)
-        
-        print("Classification Report:")
-        print(classification_report(all_labels, all_preds))
-        print("Confusion Matrix:")
-        print(confusion_mat)
-        
-        # Log metrics
-        mlflow.log_metric("accuracy", classification_rep['accuracy'])
-        mlflow.log_metric("precision", classification_rep['weighted avg']['precision'])
-        mlflow.log_metric("recall", classification_rep['weighted avg']['recall'])
-        mlflow.log_metric("f1_score", classification_rep['weighted avg']['f1-score'])
-        
-        # Log classification report as text artifact
-        mlflow.log_text(classification_report(all_labels, all_preds), "fusion_classification_report.txt")
-        
-        logger.info("Fusion model evaluation completed and logged")
+    classification_rep = classification_report(all_labels, all_preds, output_dict=True)
+    confusion_mat = confusion_matrix(all_labels, all_preds)
+    
+    print("Classification Report:")
+    print(classification_report(all_labels, all_preds))
+    print("Confusion Matrix:")
+    print(confusion_mat)
+    
+    logger.info("Fusion model evaluation completed")
 
 def main():
 

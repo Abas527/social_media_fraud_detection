@@ -218,3 +218,4 @@ data/processed
 mlruns/
 models/
 start.sh
+fraud_detection
