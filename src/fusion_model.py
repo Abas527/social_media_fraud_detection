@@ -1,3 +1,8 @@
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset

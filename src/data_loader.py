@@ -1,4 +1,9 @@
 ## src/data_loader.py
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from src.preprocessing import split_data

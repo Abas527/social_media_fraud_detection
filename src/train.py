@@ -1,4 +1,9 @@
 ## src/train.py
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import torch
 from src.model import TextModel
 from src.data_loader import create_dataloaders
