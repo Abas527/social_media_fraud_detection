@@ -26,13 +26,11 @@
 
 ## Overview
 
-Fraudulent activity on social media platforms has evolved to exploit **multiple modalities**, combining persuasive text with misleading or manipulated images. Traditional single-modal systems fail to capture these cross-modal signals.
+Social media platforms are increasingly exploited for fraudulent activities such as phishing, impersonation, fake giveaways, and scam promotions. These frauds often combine misleading text with manipulative visual content, making unimodal detection systems insufficient.
 
-This project implements a **multimodal fraud detection system** that intelligently adapts to the available inputs:
+This project presents a production-oriented multimodal fraud detection system that analyzes text, images, or both to classify social media content as fraudulent or legitimate. The system is designed with real-world constraints in mind, including partial data availability, inference efficiency, and deployment readiness.
 
-* Text only
-* Image only
-* Text and Image together (Fusion)
+The application exposes a simple user interface that allows users to submit text, images, or a combination of both and receive a fraud prediction in real time.
 
 The system is designed with **production inference in mind**, focusing on modularity, scalability, and robustness.
 
@@ -179,10 +177,14 @@ This avoids forcing empty inputs and ensures stable predictions.
 │   ├── streamlit_app.py    # UI interface
 │
 ├── src/
+│   ├── data_loader.py      # Define the Dataset and loader
 │   ├── models.py           # Text, Image, Fusion models
-│   ├── inference.py        # Prediction routing logic
+│   ├── predict.py        # Prediction routing logic
 │   ├── preprocessing.py   # Tokenization & transforms
-│
+|   |── train.py          # training the text and image model
+│   ├── evaluate.py       # Evaluating the text and image model
+│   ├── fusion_model.py   #training and evaluation of fusion model    
+│   ├── mlflow_utils.py   # mlflow setup
 ├── models/                 # Trained model weights
 ├── requirements.txt
 ├── README.md
@@ -221,6 +223,10 @@ The architecture supports easy migration to:
 * Batch processing pipelines
 * Content moderation systems
 
+* currently we are on huggingface space
+https://huggingface.co/spaces/cyberanil/fraud_detection
+
+You can visit and enjoy the app
 ---
 
 ## Design Decisions
