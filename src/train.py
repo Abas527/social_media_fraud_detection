@@ -1,6 +1,6 @@
 ## src/train.py
 import torch
-from model import TextModel
+from src.model import TextModel
 from src.data_loader import create_dataloaders
 import torch.nn as nn
 import pandas as pd
