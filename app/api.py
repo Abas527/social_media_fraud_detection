@@ -76,12 +76,7 @@ async def startup_event():
 async def predict(
     text_input: Optional[List[str]] = Form(None, description="List of text inputs for fraud detection")
 ):
-    """
-    Predict social media fraud detection using text only.
-    
-    - **text_input**: List of text strings to analyze
-    - Returns predictions with probabilities and the mode used (text_only)
-    """
+
     
     # Validate that text input is provided
     if not text_input:
@@ -102,12 +97,7 @@ async def predict(
 async def predict_image(
     images: List[UploadFile] = File(..., description="List of image files for fraud detection")
 ):
-    """
-    Predict social media fraud detection using images only.
-    
-    - **images**: List of image files to analyze
-    - Returns predictions with probabilities and the mode used (image_only)
-    """
+
     
     if not images:
         raise HTTPException(
@@ -150,13 +140,7 @@ async def predict_fusion(
     text_input: List[str] = Form(..., description="List of text inputs for fraud detection"),
     images: List[UploadFile] = File(..., description="List of image files for fraud detection")
 ):
-    """
-    Predict social media fraud detection using both text and images.
-    
-    - **text_input**: List of text strings to analyze
-    - **images**: List of image files to analyze
-    - Returns predictions with probabilities and the mode used (text_image)
-    """
+
     
     if not text_input or not images:
         raise HTTPException(
